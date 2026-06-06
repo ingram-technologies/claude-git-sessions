@@ -13,7 +13,7 @@ import { deleteSession } from "./commands/delete.js";
 
 // Kept in sync with package.json at publish time; hardcoded to avoid a JSON
 // import assertion just for --version.
-const VERSION = "0.1.1";
+const VERSION = "0.1.2";
 
 interface GlobalOpts {
   branch: string;
@@ -90,5 +90,13 @@ program
       });
     });
   });
+
+// With no subcommand, print help to stdout and exit 0 — Commander's default is
+// to print to stderr and exit 1, which looks like an error to anyone running
+// the bare command (e.g. `npx claude-git-sessions`).
+if (process.argv.length <= 2) {
+  program.outputHelp();
+  process.exit(0);
+}
 
 program.parseAsync(process.argv);

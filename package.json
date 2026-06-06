@@ -1,6 +1,6 @@
 {
   "name": "claude-git-sessions",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Share Claude Code sessions across a team through an orphan git branch in your existing repo.",
   "keywords": ["claude", "claude-code", "git", "sessions", "cli"],
   "license": "MIT",
