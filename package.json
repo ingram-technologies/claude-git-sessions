@@ -1,0 +1,40 @@
+{
+  "name": "claude-git-sessions",
+  "version": "0.1.1",
+  "description": "Share Claude Code sessions across a team through an orphan git branch in your existing repo.",
+  "keywords": ["claude", "claude-code", "git", "sessions", "cli"],
+  "license": "MIT",
+  "author": "Ingram Technologies",
+  "homepage": "https://github.com/ingram-technologies/claude-git-sessions",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ingram-technologies/claude-git-sessions.git"
+  },
+  "type": "module",
+  "bin": {
+    "ccgs": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc && chmod +x dist/index.js",
+    "dev": "tsc --watch",
+    "test": "node --test --import tsx test/*.test.ts",
+    "typecheck": "tsc --noEmit",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "commander": "^12.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "tsx": "^4.16.0",
+    "typescript": "^5.5.0"
+  }
+}
