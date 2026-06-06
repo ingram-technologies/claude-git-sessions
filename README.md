@@ -74,26 +74,32 @@ Branch names are validated with `git check-ref-format` before use.
 
 ## Commands
 
-### `ccgs pull`
+### `ccgs pull [--force] [--exclude-memory]`
 
-Fetches `@ccgs/<name>` and writes each session where Claude Code expects it:
-`~/.claude/projects/<local-slug>/<id>.jsonl`. The structural `cwd` field in each
-transcript line is rewritten from the author's path to your local equivalent so
-`claude --resume` works. (Absolute paths inside tool *output* are left as-is —
-cosmetic only.)
+Fetches `@ccgs/<name>` and writes each session into the **repo root's** project
+slug — `~/.claude/projects/<root-slug>/<id>.jsonl` — so that `claude --resume`
+run at the repo root lists every pulled session. The structural `cwd` field in
+each transcript line is rewritten from the author's path to your repo root so
+resume works. (Absolute paths inside tool *output* are left as-is — cosmetic.)
 
-If a local session is **newer** than the shared copy it is skipped with a
-warning; pass `--force` to overwrite anyway. Prints what was pulled / skipped.
+> Sessions are always placed under the repo-root slug, even if the author
+> launched Claude in a subdirectory. Honoring the author's subdir would put the
+> session in a separate (and possibly non-existent) slug dir where `--resume`
+> at the root can't see it. The original subdir is still recorded in `meta.json`.
 
-If the branch doesn't exist, it prints `nothing to pull` and exits 0.
+By default this **also pulls shared memory** (see `ccgs memory`); pass
+`--exclude-memory` for sessions only. If a local session is **newer** than the
+shared copy it is skipped with a warning; pass `--force` to overwrite. If the
+branch doesn't exist, it prints `nothing to pull` and exits 0.
 
-### `ccgs push [targets...]`
+### `ccgs push [targets...] [--exclude-memory]`
 
 Finds local sessions whose working directory is this repo (or a subdirectory),
 copies each transcript verbatim onto the orphan branch, and (re)generates its
 `meta.json`. With no arguments it pushes all of them; pass session ids/names to
-push only those. Creates the orphan branch on first push. Reports added vs
-updated.
+push only those. By default this **also pushes shared memory** (project /
+reference facts); pass `--exclude-memory` for sessions only. Creates the orphan
+branch on first push. Reports added vs updated.
 
 ### `ccgs delete <id|name> [--yes] [--local]`
 
@@ -108,6 +114,10 @@ the shared branch is touched; add `--local` to also remove the local copy.
 Claude Code keeps per-project memory in `~/.claude/projects/<slug>/memory/` —
 one Markdown file per fact, plus a `MEMORY.md` index. `ccgs memory` shares those
 facts on the same orphan branch (under a `memory/` prefix).
+
+Plain `ccgs push` / `ccgs pull` already include memory by default (with the
+type filter below, i.e. no personal facts). Use these `memory` subcommands when
+you want memory **only**, or need `--all` to include personal facts.
 
 Memory is *mixed-sensitivity*, so it's filtered by the fact's frontmatter
 `type`:

@@ -14,7 +14,7 @@ import { memoryPull, memoryPush } from "./commands/memory.js";
 
 // Kept in sync with package.json at publish time; hardcoded to avoid a JSON
 // import assertion just for --version.
-const VERSION = "0.2.0";
+const VERSION = "0.3.0";
 
 interface GlobalOpts {
   branch: string;
@@ -49,25 +49,45 @@ program
 
 program
   .command("pull")
-  .description("fetch shared sessions and place them where Claude Code can resume them")
+  .description("fetch shared sessions (and memory) and place them where Claude Code can resume them")
   .option("--force", "overwrite local copies even if they are newer", false)
-  .action(async (localOpts: { force: boolean }, cmd: Command) => {
+  .option("--exclude-memory", "pull sessions only; do not also pull memory", false)
+  .action(async (localOpts: { force: boolean; excludeMemory: boolean }, cmd: Command) => {
     const g = globals(cmd);
     await run(async () => {
       const root = await repoRoot();
-      return pull({ repoRoot: root, remote: g.remote, branch: g.branch, force: localOpts.force });
+      let code = await pull({ repoRoot: root, remote: g.remote, branch: g.branch, force: localOpts.force });
+      if (!localOpts.excludeMemory) {
+        console.log("\nMemory:");
+        const m = await memoryPull({
+          repoRoot: root,
+          remote: g.remote,
+          branch: g.branch,
+          all: false,
+          force: localOpts.force,
+        });
+        code = code || m;
+      }
+      return code;
     });
   });
 
 program
   .command("push")
-  .description("publish this repo's local sessions to the orphan branch")
+  .description("publish this repo's local sessions (and shared memory) to the orphan branch")
   .argument("[targets...]", "optional session ids/names to push (default: all)")
-  .action(async (targets: string[], _localOpts: unknown, cmd: Command) => {
+  .option("--exclude-memory", "push sessions only; do not also push memory", false)
+  .action(async (targets: string[], localOpts: { excludeMemory: boolean }, cmd: Command) => {
     const g = globals(cmd);
     await run(async () => {
       const root = await repoRoot();
-      return push({ repoRoot: root, remote: g.remote, branch: g.branch, filters: targets });
+      let code = await push({ repoRoot: root, remote: g.remote, branch: g.branch, filters: targets });
+      if (!localOpts.excludeMemory) {
+        console.log("\nMemory:");
+        const m = await memoryPush({ repoRoot: root, remote: g.remote, branch: g.branch, all: false });
+        code = code || m;
+      }
+      return code;
     });
   });
 

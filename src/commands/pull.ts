@@ -1,5 +1,4 @@
 import fs from "node:fs";
-import path from "node:path";
 import { SESSIONS_DIR } from "../constants.js";
 import {
   assertRemote,
@@ -47,9 +46,13 @@ export async function pull(opts: PullOptions): Promise<number> {
       continue;
     }
 
-    // Reconstruct the local cwd for this session: repo root + recorded subdir.
-    const rel = meta?.cwdRelativeToRepoRoot ?? "";
-    const localCwd = rel ? path.join(opts.repoRoot, rel) : opts.repoRoot;
+    // Always land the session under the repo ROOT slug, so `claude --resume`
+    // run at the repo root lists it. (We deliberately do NOT honor the author's
+    // `cwdRelativeToRepoRoot` here: that placed subdir-authored sessions in a
+    // separate — and often non-existent — slug dir, making them invisible to
+    // resume at the root. The author's subdir is still recorded in meta for
+    // provenance.)
+    const localCwd = opts.repoRoot;
     const name = meta?.name ?? id;
 
     // Conflict policy: newer local copy is kept unless --force.
