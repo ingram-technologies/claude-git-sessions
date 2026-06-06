@@ -10,10 +10,11 @@ import { repoRoot } from "./git.js";
 import { pull } from "./commands/pull.js";
 import { push } from "./commands/push.js";
 import { deleteSession } from "./commands/delete.js";
+import { memoryPull, memoryPush } from "./commands/memory.js";
 
 // Kept in sync with package.json at publish time; hardcoded to avoid a JSON
 // import assertion just for --version.
-const VERSION = "0.1.2";
+const VERSION = "0.2.0";
 
 interface GlobalOpts {
   branch: string;
@@ -90,6 +91,47 @@ program
       });
     });
   });
+
+const memory = program
+  .command("memory")
+  .description("share Claude Code memory files (project/reference facts) for this repo");
+
+memory
+  .command("push")
+  .description("publish this repo's shareable memory to the orphan branch")
+  .option("--all", "include personal user/feedback memories too", false)
+  .action(async (localOpts: { all: boolean }, cmd: Command) => {
+    const g = globals(cmd);
+    await run(async () => {
+      const root = await repoRoot();
+      return memoryPush({ repoRoot: root, remote: g.remote, branch: g.branch, all: localOpts.all });
+    });
+  });
+
+memory
+  .command("pull")
+  .description("fetch shared memory and update this repo's local MEMORY.md index")
+  .option("--all", "include personal user/feedback memories too", false)
+  .option("--force", "overwrite local copies even if they are newer", false)
+  .action(async (localOpts: { all: boolean; force: boolean }, cmd: Command) => {
+    const g = globals(cmd);
+    await run(async () => {
+      const root = await repoRoot();
+      return memoryPull({
+        repoRoot: root,
+        remote: g.remote,
+        branch: g.branch,
+        all: localOpts.all,
+        force: localOpts.force,
+      });
+    });
+  });
+
+// `ccgs memory` with no subcommand: show its help on stdout and exit 0.
+memory.action(() => {
+  memory.outputHelp();
+  process.exit(0);
+});
 
 // With no subcommand, print help to stdout and exit 0 — Commander's default is
 // to print to stderr and exit 1, which looks like an error to anyone running

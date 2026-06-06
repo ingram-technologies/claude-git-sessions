@@ -152,14 +152,19 @@ export async function trackingTip(repo: string, name: string): Promise<string | 
   return sha || null;
 }
 
-/** List `sessions/*` paths present on a tree-ish ref. */
-export async function lsSessions(repo: string, ref: string): Promise<string[]> {
+/** List paths under `prefix/` present on a tree-ish ref. */
+export async function lsTreeUnder(repo: string, ref: string, prefix: string): Promise<string[]> {
   const r = await git(["ls-tree", "-r", "--name-only", ref], { cwd: repo, allowFail: true });
   if (r.code !== 0) return [];
   return r.stdout
     .split("\n")
     .map((s) => s.trim())
-    .filter((p) => p.startsWith(`${SESSIONS_DIR}/`));
+    .filter((p) => p.startsWith(`${prefix}/`));
+}
+
+/** List `sessions/*` paths present on a tree-ish ref. */
+export async function lsSessions(repo: string, ref: string): Promise<string[]> {
+  return lsTreeUnder(repo, ref, SESSIONS_DIR);
 }
 
 /** Read a blob at `ref:path` as utf-8 text, or null if it does not exist. */

@@ -45,6 +45,8 @@ history with `main` and never contains your source files — only session data:
 ```
 sessions/<session-id>.jsonl        # the transcript, verbatim
 sessions/<session-id>.meta.json    # sidecar metadata (name, author, cwd, …)
+memory/<fact>.md                   # shared memory facts (see `ccgs memory`)
+memory/<fact>.md.meta.json         # sidecar metadata (type, author, …)
 ```
 
 Files are keyed by the globally-unique Claude Code session UUID, so transcripts
@@ -100,6 +102,29 @@ chars), or unique display name — listing candidates and aborting if ambiguous.
 Shows what will be deleted and asks for `y/N` confirmation (`--yes`/`-y` to skip
 for scripting). Removes both files from the branch and pushes. By default only
 the shared branch is touched; add `--local` to also remove the local copy.
+
+### `ccgs memory push [--all]` / `ccgs memory pull [--all] [--force]`
+
+Claude Code keeps per-project memory in `~/.claude/projects/<slug>/memory/` —
+one Markdown file per fact, plus a `MEMORY.md` index. `ccgs memory` shares those
+facts on the same orphan branch (under a `memory/` prefix).
+
+Memory is *mixed-sensitivity*, so it's filtered by the fact's frontmatter
+`type`:
+
+- **`project` / `reference`** facts ("how we deploy", "where the API docs live")
+  are team knowledge and are shared **by default**.
+- **`user` / `feedback`** facts (personal preferences) are held back unless you
+  pass **`--all`**.
+
+`pull` writes the shared facts into your local memory dir and maintains a
+clearly-marked block inside your `MEMORY.md` pointing at them — **your own index
+lines are left untouched**. `MEMORY.md` itself is never pushed as a blob (two
+people's indexes would clobber each other). Facts are keyed by filename with
+newer-wins conflict handling (`--force` to overwrite a newer local copy).
+
+> Scope: only the repo **root** slug's memory dir is synced (the common case);
+> memory from sessions started in subdirectories is not.
 
 ### Global options
 

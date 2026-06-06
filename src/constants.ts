@@ -18,5 +18,14 @@ export const DEFAULT_REMOTE = "origin";
 /** Path prefix used for session blobs on the orphan branch. */
 export const SESSIONS_DIR = "sessions";
 
+/**
+ * Path prefix used for shared memory blobs on the orphan branch, and the name
+ * of the local memory subdirectory inside a project's slug dir.
+ */
+export const MEMORY_DIR = "memory";
+
+/** The hand-maintained memory index file (lives inside the memory dir). */
+export const MEMORY_INDEX = "MEMORY.md";
+
 /** Max length of an auto-derived display name. */
 export const DISPLAY_NAME_MAX = 80;
